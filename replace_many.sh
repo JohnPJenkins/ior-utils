@@ -25,23 +25,17 @@ EOF
     exit 1
 }
 
-function die {
-    echo $@ >&2
-    exit 1
-}
-
 token=$1
 
-[[ $token == "" ]] \
-    && usage
+[[ $token == "" ]] && usage
 
 shift
 
-rm -f "$ior_gen"
+[[ $1 == "" ]] && usage
 
 tempfile=$(mktemp)
 
-cat > $tempfile 
+cat > $tempfile
 
 for value in $@ ; do
     sed "s!$token!$value!g" $tempfile
