@@ -9,17 +9,46 @@ function usage {
     cat <<EOF
 Usage: replace_many.sh TOKEN VALUE...
 
-  Creates N copies of standard input, each having replaced
-  all instances of TOKEN with each VALUE given.
+  Creates N copies of the IOR template passed in through
+  standard input, each having replaced all instances of
+  TOKEN with each VALUE given. 
 
   For example:
 
-    replace_many.sh XXX foo bar<<< "XXX is the value"
+    ior.in:
+      IOR START
+        api=POSIX
+        segmentCount=10
+        blockSize=foo
+        transferSize=foo
+        testFile=temp.dat
+        RUN
+      IOR STOP
+
+    replace_many.sh foo 8 16 32 < ior.in 
 
   produces the output:
 
-    foo is the value
-    bar is the value
+    IOR START
+      api=POSIX
+      segmentCount=10
+      blockSize=8
+      transferSize=8
+      testFile=temp.dat
+      RUN
+      api=POSIX
+      segmentCount=10
+      blockSize=16
+      transferSize=16
+      testFile=temp.dat
+      RUN
+      api=POSIX
+      segmentCount=10
+      blockSize=32
+      transferSize=32
+      testFile=temp.dat
+      RUN
+    IOR STOP
 EOF
 
     exit 1
@@ -35,10 +64,14 @@ shift
 
 tempfile=$(mktemp)
 
-cat > $tempfile
+cat | sed -r "/IOR *(START|STOP)/ d" > $tempfile
+
+echo IOR START
 
 for value in $@ ; do
     sed "s!$token!$value!g" $tempfile
 done
+
+echo IOR STOP
 
 rm $tempfile
